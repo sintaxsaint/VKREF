@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VKREF // Vulkan Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --bg-elev: #131316;
+    --bg-card: #16161a;
+    --bg-code: #0d0d10;
+    --border: #26262c;
+    --border-bright: #3a3a44;
+    --text: #e8e6e3;
+    --text-muted: #7a7a82;
+    --text-dim: #4a4a52;
+    --accent: #ffaa44;
+    --accent-dim: #aa6622;
+    --danger: #ff5e5e;
+    --danger-dim: #884444;
+    --success: #6ee787;
+    --keyword: #c792ea;
+    --type: #ffaa44;
+    --string: #6ee787;
+    --comment: #545464;
+    --number: #f78c6c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body {
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(255, 170, 68, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(199, 146, 234, 0.03) 0%, transparent 50%);
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+    margin-bottom: 32px;
+  }
+  .brand {
+    font-family: 'Major Mono Display', monospace;
+    font-size: 56px;
+    letter-spacing: -2px;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .tagline {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .tagline .accent { color: var(--accent); }
+  .search-wrap {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: 24px 0;
+    z-index: 10;
+    margin-bottom: 16px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 200ms;
+  }
+  .search-wrap.scrolled {
+    border-bottom-color: var(--border);
+  }
+  .search-box {
+    position: relative;
+  }
+  .search-box::before {
+    content: '>';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .search-shortcut {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 12px;
+    background: var(--bg-elev);
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    pointer-events: none;
+  }
+  .search-shortcut.hidden { display: none; }
+  input#search {
+    width: 100%;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 16px 16px 16px 36px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 200ms, background 200ms;
+  }
+  input#search:focus {
+    border-color: var(--accent-dim);
+    background: var(--bg-card);
+  }
+  input#search::placeholder {
+    color: var(--text-dim);
+  }
+  .count {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 24px;
+    padding: 0 4px;
+  }
+  .count .num { color: var(--accent); }
+  .entry {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    transition: border-color 150ms;
+  }
+  .entry:hover {
+    border-color: var(--border-bright);
+  }
+  .entry.open {
+    border-color: var(--accent-dim);
+  }
+  .entry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .entry-head:hover .entry-title { color: var(--accent); }
+  .entry-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 150ms;
+  }
+  .entry-title .type {
+    color: var(--text-dim);
+    font-weight: 400;
+    font-size: 13px;
+    margin-left: 8px;
+  }
+  .entry-tags {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg-elev);
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .arrow {
+    color: var(--text-dim);
+    transition: transform 200ms;
+    font-size: 12px;
+  }
+  .entry.open .arrow {
+    transform: rotate(90deg);
+    color: var(--accent);
+  }
+  .entry-body {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .entry.open .entry-body { display: block; }
+  .section-label {
+    color: var(--accent);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 24px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-label.danger {
+    color: var(--danger);
+  }
+  .description {
+    color: var(--text);
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .description p + p { margin-top: 8px; }
+  .description em {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  ul.remember {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  ul.remember li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    color: var(--text);
+    font-size: 13px;
+  }
+  ul.remember li::before {
+    content: '!';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  ul.depends {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+  }
+  ul.depends li {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  ul.depends li:hover {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+  }
+  ul.depends li::before {
+    content: '↳ ';
+    color: var(--text-dim);
+  }
+  pre.code {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent-dim);
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre;
+    color: var(--text);
+  }
+  pre.code.danger {
+    border-left-color: var(--danger-dim);
+  }
+  /* Syntax tokens */
+  .tk-kw { color: var(--keyword); }
+  .tk-ty { color: var(--type); }
+  .tk-str { color: var(--string); }
+  .tk-com { color: var(--comment); font-style: italic; }
+  .tk-num { color: var(--number); }
+  .tk-fn { color: var(--text); }
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 60px 0;
+    font-size: 14px;
+  }
+  .empty .big {
+    font-family: 'Major Mono Display', monospace;
+    font-size: 32px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    text-align: center;
+  }
+  footer .accent { color: var(--accent); }
+  mark {
+    background: var(--accent-dim);
+    color: var(--text);
+    padding: 0 2px;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand">vkref</div>
+    <div class="tagline">
+      <span class="accent">vulkan in c</span> // searchable reference // create, remember, destroy
+    </div>
+  </header>
+
+  <div class="search-wrap" id="searchWrap">
+    <div class="search-box">
+      <input id="search" type="text" placeholder="search for an operation... try 'triangle' or 'cleanup'" autofocus>
+      <span class="search-shortcut" id="shortcutHint">press /</span>
+    </div>
+  </div>
+
+  <div class="count" id="count"></div>
+  <div id="entries"></div>
+
+  <footer>
+    starter reference // verify details against <span class="accent">vulkan-tutorial.com</span> + the official spec as you implement // expand by editing the entries array in this file
+  </footer>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// VULKAN OPERATION ENTRIES
+// Add more entries by appending to this array. Keep ids unique.
+// ─────────────────────────────────────────────────────────────────────────────
+const ENTRIES = [
+  {
+    id: 'instance',
+    title: 'Create Vulkan Instance',
+    type: 'VkInstance',
+    tags: ['setup', 'init'],
+    description: 'The entry point to Vulkan. Connects your application to the Vulkan library. Must be created before any other Vulkan call.',
+    depends: [],
+    remember: [
+      'Required before everything else',
+      'Enable validation layers in debug builds (VK_LAYER_KHRONOS_validation)',
+      'Specify required extensions — at minimum the ones GLFW asks for via glfwGetRequiredInstanceExtensions',
+      'apiVersion in VkApplicationInfo should match what your code uses (e.g. VK_API_VERSION_1_3)'
+    ],
+    create: `VkApplicationInfo appInfo = {0};
+appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+appInfo.pApplicationName = "Mine & Craft Life";
+appInfo.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
+appInfo.pEngineName = "No Engine";
+appInfo.engineVersion = VK_MAKE_VERSION(0, 1, 0);
+appInfo.apiVersion = VK_API_VERSION_1_3;
+
+uint32_t glfwExtCount = 0;
+const char** glfwExts = glfwGetRequiredInstanceExtensions(&glfwExtCount);
+
+VkInstanceCreateInfo info = {0};
+info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+info.pApplicationInfo = &appInfo;
+info.enabledExtensionCount = glfwExtCount;
+info.ppEnabledExtensionNames = glfwExts;
+
+// Validation layers (debug only)
+const char* layers[] = { "VK_LAYER_KHRONOS_validation" };
+info.enabledLayerCount = 1;
+info.ppEnabledLayerNames = layers;
+
+VkInstance instance;
+if (vkCreateInstance(&info, NULL, &instance) != VK_SUCCESS) {
+    fprintf(stderr, "failed to create instance\\n");
+    return -1;
+}`,
+    cleanup: `vkDestroyInstance(instance, NULL);
+// MUST be last — every other Vulkan handle must already be destroyed.`
+  },
+  {
+    id: 'validation',
+    title: 'Enable Validation Layers',
+    type: 'VkDebugUtilsMessengerEXT',
+    tags: ['setup', 'debug'],
+    description: 'Validation layers catch ~95% of "why is my screen black" issues. They tell you when you misuse the API. Use in debug builds, strip in release.',
+    depends: ['instance'],
+    remember: [
+      'Add "VK_EXT_debug_utils" to instance extensions',
+      'The messenger callback fires for warnings + errors — log them prominently',
+      'These layers do not ship with the driver — Vulkan SDK provides them',
+      'Disable in release builds for performance'
+    ],
+    create: `VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT type,
+    const VkDebugUtilsMessengerCallbackDataEXT* data,
+    void* userData)
+{
+    fprintf(stderr, "[validation] %s\\n", data->pMessage);
+    return VK_FALSE;
+}
+
+// After instance is created:
+VkDebugUtilsMessengerCreateInfoEXT dbgInfo = {0};
+dbgInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+dbgInfo.messageSeverity =
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+dbgInfo.messageType =
+    VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+dbgInfo.pfnUserCallback = debugCallback;
+
+// Need to load the function pointer manually:
+PFN_vkCreateDebugUtilsMessengerEXT createFn =
+    (PFN_vkCreateDebugUtilsMessengerEXT)
+    vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+
+VkDebugUtilsMessengerEXT debugMessenger;
+createFn(instance, &dbgInfo, NULL, &debugMessenger);`,
+    cleanup: `// Load the destroy function pointer (also not in the core)
+PFN_vkDestroyDebugUtilsMessengerEXT destroyFn =
+    (PFN_vkDestroyDebugUtilsMessengerEXT)
+    vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+destroyFn(instance, debugMessenger, NULL);`
+  },
+  {
+    id: 'surface',
+    title: 'Create Window Surface (GLFW)',
+    type: 'VkSurfaceKHR',
+    tags: ['setup', 'window'],
+    description: 'The bridge between Vulkan and the window system. You render into the surface, the OS shows it on screen.',
+    depends: ['instance'],
+    remember: [
+      'Create a GLFW window with GLFW_CLIENT_API set to GLFW_NO_API (no OpenGL context)',
+      'glfwCreateWindowSurface handles platform-specific details for you',
+      'Destroy surface before destroying instance',
+      'Must check VK_KHR_swapchain support on the device that will use this surface'
+    ],
+    create: `glfwInit();
+glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // simpler to start
+
+GLFWwindow* window = glfwCreateWindow(1280, 720, "Mine & Craft Life", NULL, NULL);
+
+VkSurfaceKHR surface;
+if (glfwCreateWindowSurface(instance, window, NULL, &surface) != VK_SUCCESS) {
+    fprintf(stderr, "failed to create window surface\\n");
+    return -1;
+}`,
+    cleanup: `vkDestroySurfaceKHR(instance, surface, NULL);
+glfwDestroyWindow(window);
+glfwTerminate();`
+  },
+  {
+    id: 'physical',
+    title: 'Pick Physical Device (GPU)',
+    type: 'VkPhysicalDevice',
+    tags: ['setup', 'init'],
+    description: 'Select a GPU to use. Most systems have one obvious choice but laptops with integrated + discrete need handling.',
+    depends: ['instance', 'surface'],
+    remember: [
+      'No cleanup needed — physical devices are not created, just selected',
+      'Check VK_KHR_swapchain extension is supported',
+      'Check that at least one queue family supports graphics + presentation',
+      'On laptops, prefer discrete GPUs when available (VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)'
+    ],
+    create: `uint32_t deviceCount = 0;
+vkEnumeratePhysicalDevices(instance, &deviceCount, NULL);
+if (deviceCount == 0) {
+    fprintf(stderr, "no Vulkan-capable GPUs found\\n");
+    return -1;
+}
+
+VkPhysicalDevice* devices = malloc(sizeof(VkPhysicalDevice) * deviceCount);
+vkEnumeratePhysicalDevices(instance, &deviceCount, devices);
+
+VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+for (uint32_t i = 0; i < deviceCount; i++) {
+    VkPhysicalDeviceProperties props;
+    vkGetPhysicalDeviceProperties(devices[i], &props);
+    // TODO: check swapchain support, queue families, etc.
+    if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        physicalDevice = devices[i];
+        break;
+    }
+}
+if (physicalDevice == VK_NULL_HANDLE) physicalDevice = devices[0];
+free(devices);`,
+    cleanup: `// Physical devices are not destroyed — they belong to the instance.
+// They go away when vkDestroyInstance is called.`
+  },
+  {
+    id: 'queues',
+    title: 'Find Queue Family Indices',
+    type: 'uint32_t',
+    tags: ['setup', 'init'],
+    description: 'Queues are how you submit work to the GPU. A queue family is a category of queues (graphics, compute, transfer, present). Find which families your physical device exposes.',
+    depends: ['physical'],
+    remember: [
+      'Graphics + present queues are sometimes the same family, sometimes not',
+      'On the same family, the same queue handle can do both',
+      'You need at least one graphics queue and one present queue to render',
+      'Store indices because you will reuse them when creating logical device'
+    ],
+    create: `uint32_t queueCount = 0;
+vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, NULL);
+VkQueueFamilyProperties* families = malloc(sizeof(VkQueueFamilyProperties) * queueCount);
+vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, families);
+
+uint32_t graphicsFamily = UINT32_MAX;
+uint32_t presentFamily = UINT32_MAX;
+
+for (uint32_t i = 0; i < queueCount; i++) {
+    if (families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        graphicsFamily = i;
+    }
+    VkBool32 presentSupport = VK_FALSE;
+    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
+    if (presentSupport) presentFamily = i;
+    if (graphicsFamily != UINT32_MAX && presentFamily != UINT32_MAX) break;
+}
+free(families);`,
+    cleanup: `// Queue family indices are just integers — nothing to destroy.`
+  },
+  {
+    id: 'device',
+    title: 'Create Logical Device',
+    type: 'VkDevice',
+    tags: ['setup', 'init'],
+    description: 'Your handle to the GPU. Almost every other Vulkan call needs a VkDevice. Queues are retrieved from it after creation.',
+    depends: ['physical', 'queues'],
+    remember: [
+      'Enable VK_KHR_swapchain extension here',
+      'List queue families you want — duplicates are fine if graphics + present are the same',
+      'Enable features you actually need (samplerAnisotropy, etc.)',
+      'vkGetDeviceQueue retrieves the queue handles after device is created — they are not allocated'
+    ],
+    create: `float queuePriority = 1.0f;
+
+VkDeviceQueueCreateInfo queueInfos[2];
+uint32_t queueInfoCount = 0;
+
+queueInfos[queueInfoCount] = (VkDeviceQueueCreateInfo){
+    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+    .queueFamilyIndex = graphicsFamily,
+    .queueCount = 1,
+    .pQueuePriorities = &queuePriority
+};
+queueInfoCount++;
+
+if (presentFamily != graphicsFamily) {
+    queueInfos[queueInfoCount] = (VkDeviceQueueCreateInfo){
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .queueFamilyIndex = presentFamily,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority
+    };
+    queueInfoCount++;
+}
+
+const char* deviceExts[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+VkPhysicalDeviceFeatures features = {0};
+
+VkDeviceCreateInfo info = {0};
+info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+info.pQueueCreateInfos = queueInfos;
+info.queueCreateInfoCount = queueInfoCount;
+info.pEnabledFeatures = &features;
+info.enabledExtensionCount = 1;
+info.ppEnabledExtensionNames = deviceExts;
+
+VkDevice device;
+vkCreateDevice(physicalDevice, &info, NULL, &device);
+
+VkQueue graphicsQueue, presentQueue;
+vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
+vkGetDeviceQueue(device, presentFamily, 0, &presentQueue);`,
+    cleanup: `vkDestroyDevice(device, NULL);
+// Queues don't need explicit cleanup — they belong to the device.`
+  },
+  {
+    id: 'swapchain',
+    title: 'Create Swap Chain',
+    type: 'VkSwapchainKHR',
+    tags: ['rendering', 'window'],
+    description: 'The queue of images that get presented to the window. Typically 2-3 images: one being shown, one being drawn into, possibly one queued.',
+    depends: ['device', 'surface'],
+    remember: [
+      'Query surface capabilities first to get min/max image count and supported formats',
+      'Must be recreated when the window resizes (handle VK_ERROR_OUT_OF_DATE_KHR)',
+      'VK_PRESENT_MODE_FIFO_KHR is vsync (always available); MAILBOX is vsync without tearing if supported',
+      'Image format usually VK_FORMAT_B8G8R8A8_SRGB'
+    ],
+    create: `VkSurfaceCapabilitiesKHR caps;
+vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &caps);
+
+uint32_t imageCount = caps.minImageCount + 1;
+if (caps.maxImageCount > 0 && imageCount > caps.maxImageCount) {
+    imageCount = caps.maxImageCount;
+}
+
+VkSwapchainCreateInfoKHR info = {0};
+info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+info.surface = surface;
+info.minImageCount = imageCount;
+info.imageFormat = VK_FORMAT_B8G8R8A8_SRGB;
+info.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+info.imageExtent = caps.currentExtent;
+info.imageArrayLayers = 1;
+info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+info.preTransform = caps.currentTransform;
+info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+info.clipped = VK_TRUE;
+info.oldSwapchain = VK_NULL_HANDLE;
+
+VkSwapchainKHR swapchain;
+vkCreateSwapchainKHR(device, &info, NULL, &swapchain);
+
+// Retrieve the actual images
+vkGetSwapchainImagesKHR(device, swapchain, &imageCount, NULL);
+VkImage* swapImages = malloc(sizeof(VkImage) * imageCount);
+vkGetSwapchainImagesKHR(device, swapchain, &imageCount, swapImages);`,
+    cleanup: `vkDestroySwapchainKHR(device, swapchain, NULL);
+free(swapImages);
+// Swap chain images are owned by the swap chain — do NOT call vkDestroyImage on them.`
+  },
+  {
+    id: 'imageviews',
+    title: 'Create Image Views (for swap chain)',
+    type: 'VkImageView',
+    tags: ['rendering'],
+    description: 'An image view describes how to access an image — format, dimensions, which mip levels, etc. You need one per swap chain image to render into them.',
+    depends: ['swapchain'],
+    remember: [
+      'One view per swap chain image — store them in an array',
+      'Format must match what you specified for the swap chain',
+      'viewType = VK_IMAGE_VIEW_TYPE_2D for normal flat images',
+      'Destroy each view individually before destroying the swap chain'
+    ],
+    create: `VkImageView* swapViews = malloc(sizeof(VkImageView) * imageCount);
+
+for (uint32_t i = 0; i < imageCount; i++) {
+    VkImageViewCreateInfo info = {0};
+    info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    info.image = swapImages[i];
+    info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    info.format = VK_FORMAT_B8G8R8A8_SRGB;
+    info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    info.subresourceRange.baseMipLevel = 0;
+    info.subresourceRange.levelCount = 1;
+    info.subresourceRange.baseArrayLayer = 0;
+    info.subresourceRange.layerCount = 1;
+
+    vkCreateImageView(device, &info, NULL, &swapViews[i]);
+}`,
+    cleanup: `for (uint32_t i = 0; i < imageCount; i++) {
+    vkDestroyImageView(device, swapViews[i], NULL);
+}
+free(swapViews);`
+  },
+  {
+    id: 'renderpass',
+    title: 'Create Render Pass',
+    type: 'VkRenderPass',
+    tags: ['rendering'],
+    description: 'Describes the rendering operations: which attachments (color, depth) you draw into, what their initial and final layouts are, what subpasses exist.',
+    depends: ['device'],
+    remember: [
+      'For a simple triangle: one color attachment, one subpass',
+      'loadOp = CLEAR means the framebuffer starts blank each frame',
+      'finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR if rendering to swap chain',
+      'Vulkan 1.3 added dynamic rendering — you can skip render passes entirely with VK_KHR_dynamic_rendering'
+    ],
+    create: `VkAttachmentDescription colorAttachment = {0};
+colorAttachment.format = VK_FORMAT_B8G8R8A8_SRGB;
+colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+VkAttachmentReference colorRef = {0};
+colorRef.attachment = 0;
+colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+VkSubpassDescription subpass = {0};
+subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+subpass.colorAttachmentCount = 1;
+subpass.pColorAttachments = &colorRef;
+
+VkRenderPassCreateInfo info = {0};
+info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+info.attachmentCount = 1;
+info.pAttachments = &colorAttachment;
+info.subpassCount = 1;
+info.pSubpasses = &subpass;
+
+VkRenderPass renderPass;
+vkCreateRenderPass(device, &info, NULL, &renderPass);`,
+    cleanup: `vkDestroyRenderPass(device, renderPass, NULL);`
+  },
+  {
+    id: 'shader',
+    title: 'Load Shader Module',
+    type: 'VkShaderModule',
+    tags: ['rendering', 'shaders'],
+    description: 'Vulkan does not accept GLSL or HLSL directly — it accepts SPIR-V bytecode. Compile shaders to .spv files with glslc beforehand, load the bytes here.',
+    depends: ['device'],
+    remember: [
+      'Compile with: glslc shader.vert -o vert.spv',
+      'File reads must produce uint32_t-aligned data — read the bytes, cast to uint32_t*',
+      'You can destroy shader modules immediately after creating the pipeline that uses them',
+      'Pipeline keeps a reference internally — modules only exist for pipeline creation'
+    ],
+    create: `// Load file into memory
+FILE* f = fopen("shader.spv", "rb");
+fseek(f, 0, SEEK_END);
+size_t size = ftell(f);
+fseek(f, 0, SEEK_SET);
+uint32_t* code = malloc(size);
+fread(code, 1, size, f);
+fclose(f);
+
+VkShaderModuleCreateInfo info = {0};
+info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+info.codeSize = size;
+info.pCode = code;
+
+VkShaderModule shaderModule;
+vkCreateShaderModule(device, &info, NULL, &shaderModule);
+free(code);  // safe to free after creation`,
+    cleanup: `vkDestroyShaderModule(device, shaderModule, NULL);
+// Can be destroyed as soon as the graphics pipeline using it has been created.`
+  },
+  {
+    id: 'pipeline',
+    title: 'Create Graphics Pipeline',
+    type: 'VkPipeline',
+    tags: ['rendering', 'shaders'],
+    description: 'The big one. Describes everything about how draws happen: which shaders, vertex layout, viewport, rasterizer settings, blending, etc. Vulkan bakes all of this once instead of letting you flip switches at draw time.',
+    depends: ['renderpass', 'shader'],
+    remember: [
+      'This is the longest setup in Vulkan — accept it',
+      'Every state change usually means a new pipeline (or use dynamic state)',
+      'Pipeline layout (for descriptors/push constants) is a separate object you create first',
+      'You can create multiple pipelines in one vkCreateGraphicsPipelines call for efficiency',
+      'Cache pipelines on disk with VkPipelineCache to speed up subsequent launches'
+    ],
+    create: `// Shader stages
+VkPipelineShaderStageCreateInfo stages[2] = {0};
+stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+stages[0].module = vertShaderModule;
+stages[0].pName = "main";
+stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+stages[1].module = fragShaderModule;
+stages[1].pName = "main";
+
+// Vertex input — empty for hardcoded triangle in shader
+VkPipelineVertexInputStateCreateInfo vertexInput = {0};
+vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+VkPipelineInputAssemblyStateCreateInfo inputAssembly = {0};
+inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+VkViewport viewport = { 0, 0, 1280, 720, 0.0f, 1.0f };
+VkRect2D scissor = { {0,0}, {1280, 720} };
+
+VkPipelineViewportStateCreateInfo viewportState = {0};
+viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+viewportState.viewportCount = 1;
+viewportState.pViewports = &viewport;
+viewportState.scissorCount = 1;
+viewportState.pScissors = &scissor;
+
+VkPipelineRasterizationStateCreateInfo raster = {0};
+raster.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+raster.polygonMode = VK_POLYGON_MODE_FILL;
+raster.lineWidth = 1.0f;
+raster.cullMode = VK_CULL_MODE_BACK_BIT;
+raster.frontFace = VK_FRONT_FACE_CLOCKWISE;
+
+VkPipelineMultisampleStateCreateInfo multisample = {0};
+multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+VkPipelineColorBlendAttachmentState blendAttach = {0};
+blendAttach.colorWriteMask = 0xF;
+blendAttach.blendEnable = VK_FALSE;
+
+VkPipelineColorBlendStateCreateInfo blend = {0};
+blend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+blend.attachmentCount = 1;
+blend.pAttachments = &blendAttach;
+
+// Pipeline layout (empty for now — no descriptors)
+VkPipelineLayoutCreateInfo layoutInfo = {0};
+layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+VkPipelineLayout pipelineLayout;
+vkCreatePipelineLayout(device, &layoutInfo, NULL, &pipelineLayout);
+
+VkGraphicsPipelineCreateInfo info = {0};
+info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+info.stageCount = 2;
+info.pStages = stages;
+info.pVertexInputState = &vertexInput;
+info.pInputAssemblyState = &inputAssembly;
+info.pViewportState = &viewportState;
+info.pRasterizationState = &raster;
+info.pMultisampleState = &multisample;
+info.pColorBlendState = &blend;
+info.layout = pipelineLayout;
+info.renderPass = renderPass;
+info.subpass = 0;
+
+VkPipeline pipeline;
+vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, NULL, &pipeline);`,
+    cleanup: `vkDestroyPipeline(device, pipeline, NULL);
+vkDestroyPipelineLayout(device, pipelineLayout, NULL);`
+  },
+  {
+    id: 'framebuffer',
+    title: 'Create Framebuffers',
+    type: 'VkFramebuffer',
+    tags: ['rendering'],
+    description: 'A framebuffer ties together a render pass and a specific set of attachments (image views). You need one per swap chain image.',
+    depends: ['renderpass', 'imageviews'],
+    remember: [
+      'One framebuffer per swap chain image',
+      'Recreate when window resizes (along with swap chain)',
+      'Dimensions must match the image view dimensions',
+      'attachmentCount and order must match the render pass'
+    ],
+    create: `VkFramebuffer* framebuffers = malloc(sizeof(VkFramebuffer) * imageCount);
+
+for (uint32_t i = 0; i < imageCount; i++) {
+    VkImageView attachments[] = { swapViews[i] };
+
+    VkFramebufferCreateInfo info = {0};
+    info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    info.renderPass = renderPass;
+    info.attachmentCount = 1;
+    info.pAttachments = attachments;
+    info.width = 1280;
+    info.height = 720;
+    info.layers = 1;
+
+    vkCreateFramebuffer(device, &info, NULL, &framebuffers[i]);
+}`,
+    cleanup: `for (uint32_t i = 0; i < imageCount; i++) {
+    vkDestroyFramebuffer(device, framebuffers[i], NULL);
+}
+free(framebuffers);`
+  },
+  {
+    id: 'commandpool',
+    title: 'Create Command Pool',
+    type: 'VkCommandPool',
+    tags: ['rendering', 'commands'],
+    description: 'Command buffers are allocated from pools. Pools are tied to a specific queue family — buffers allocated from a graphics pool can only be submitted to graphics queues.',
+    depends: ['device', 'queues'],
+    remember: [
+      'One pool per thread that records commands (pools are not thread-safe)',
+      'Use VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT if you reuse buffers',
+      'Destroying the pool frees all command buffers from it automatically',
+      'queueFamilyIndex must match the queue family you will submit to'
+    ],
+    create: `VkCommandPoolCreateInfo info = {0};
+info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+info.queueFamilyIndex = graphicsFamily;
+
+VkCommandPool commandPool;
+vkCreateCommandPool(device, &info, NULL, &commandPool);`,
+    cleanup: `vkDestroyCommandPool(device, commandPool, NULL);
+// All command buffers from this pool are freed automatically.`
+  },
+  {
+    id: 'commandbuffer',
+    title: 'Allocate Command Buffer',
+    type: 'VkCommandBuffer',
+    tags: ['rendering', 'commands'],
+    description: 'Where you record GPU commands. Begin → record → end → submit. Allocated from a command pool.',
+    depends: ['commandpool'],
+    remember: [
+      'PRIMARY level can be submitted; SECONDARY can only be called from primary buffers',
+      'Do not free individually if the pool will be destroyed — it cleans up for you',
+      'Recording is single-threaded per pool but multiple pools can record in parallel',
+      'Reset and re-record each frame, OR record once and reuse if commands do not change'
+    ],
+    create: `VkCommandBufferAllocateInfo info = {0};
+info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+info.commandPool = commandPool;
+info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+info.commandBufferCount = 1;
+
+VkCommandBuffer commandBuffer;
+vkAllocateCommandBuffers(device, &info, &commandBuffer);`,
+    cleanup: `vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+// Or skip — destroying commandPool frees all buffers.`
+  },
+  {
+    id: 'sync',
+    title: 'Create Sync Objects (Semaphore + Fence)',
+    type: 'VkSemaphore / VkFence',
+    tags: ['rendering', 'sync'],
+    description: 'Vulkan does not synchronize anything automatically. Semaphores sync GPU-to-GPU work, fences sync GPU-to-CPU. You need both to render a frame correctly.',
+    depends: ['device'],
+    remember: [
+      'Per-frame: one fence + two semaphores (image available, render finished)',
+      'Use MAX_FRAMES_IN_FLIGHT = 2 to allow CPU to prep next frame while GPU renders current',
+      'Create fences with VK_FENCE_CREATE_SIGNALED_BIT for the first frame (so vkWaitForFences does not block forever)',
+      'Wait + reset fences before recording new commands'
+    ],
+    create: `VkSemaphoreCreateInfo semInfo = {0};
+semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+VkFenceCreateInfo fenceInfo = {0};
+fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+VkSemaphore imageAvailable, renderFinished;
+VkFence inFlightFence;
+
+vkCreateSemaphore(device, &semInfo, NULL, &imageAvailable);
+vkCreateSemaphore(device, &semInfo, NULL, &renderFinished);
+vkCreateFence(device, &fenceInfo, NULL, &inFlightFence);`,
+    cleanup: `vkDestroySemaphore(device, imageAvailable, NULL);
+vkDestroySemaphore(device, renderFinished, NULL);
+vkDestroyFence(device, inFlightFence, NULL);`
+  },
+  {
+    id: 'triangle',
+    title: 'Draw a Triangle',
+    type: 'frame logic',
+    tags: ['rendering', 'goal'],
+    description: 'The "hello world" of graphics. The triangle itself is hardcoded in the vertex shader — no vertex buffer needed for this version. Run this every frame in your main loop.',
+    depends: ['pipeline', 'framebuffer', 'commandbuffer', 'sync'],
+    remember: [
+      'Vertex shader hardcodes the three triangle positions (see shader code below)',
+      'Each frame: wait for fence → acquire image → record commands → submit → present',
+      'Check for VK_ERROR_OUT_OF_DATE_KHR on acquire/present — means swap chain needs recreating',
+      'Call vkDeviceWaitIdle before destroying anything during shutdown'
+    ],
+    create: `// === Vertex shader (compile to vert.spv with glslc) ===
+// #version 450
+// vec2 positions[3] = vec2[](
+//     vec2( 0.0, -0.5),
+//     vec2( 0.5,  0.5),
+//     vec2(-0.5,  0.5)
+// );
+// void main() {
+//     gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+// }
+//
+// === Fragment shader (compile to frag.spv) ===
+// #version 450
+// layout(location = 0) out vec4 outColor;
+// void main() {
+//     outColor = vec4(1.0, 0.7, 0.3, 1.0);
+// }
+
+// === Per-frame loop ===
+void drawFrame(void) {
+    vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(device, 1, &inFlightFence);
+
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
+                          imageAvailable, VK_NULL_HANDLE, &imageIndex);
+
+    vkResetCommandBuffer(commandBuffer, 0);
+
+    VkCommandBufferBeginInfo begin = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+    vkBeginCommandBuffer(commandBuffer, &begin);
+
+    VkClearValue clearColor = { .color = {{0.04f, 0.04f, 0.05f, 1.0f}} };
+    VkRenderPassBeginInfo rpBegin = {0};
+    rpBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpBegin.renderPass = renderPass;
+    rpBegin.framebuffer = framebuffers[imageIndex];
+    rpBegin.renderArea.extent = (VkExtent2D){ 1280, 720 };
+    rpBegin.clearValueCount = 1;
+    rpBegin.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(commandBuffer, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);   // ← the triangle
+    vkCmdEndRenderPass(commandBuffer);
+    vkEndCommandBuffer(commandBuffer);
+
+    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkSubmitInfo submit = {0};
+    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit.waitSemaphoreCount = 1;
+    submit.pWaitSemaphores = &imageAvailable;
+    submit.pWaitDstStageMask = &waitStage;
+    submit.commandBufferCount = 1;
+    submit.pCommandBuffers = &commandBuffer;
+    submit.signalSemaphoreCount = 1;
+    submit.pSignalSemaphores = &renderFinished;
+    vkQueueSubmit(graphicsQueue, 1, &submit, inFlightFence);
+
+    VkPresentInfoKHR present = {0};
+    present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present.waitSemaphoreCount = 1;
+    present.pWaitSemaphores = &renderFinished;
+    present.swapchainCount = 1;
+    present.pSwapchains = &swapchain;
+    present.pImageIndices = &imageIndex;
+    vkQueuePresentKHR(presentQueue, &present);
+}`,
+    cleanup: `// Nothing per-frame to destroy — just call vkDeviceWaitIdle before shutdown
+// so the GPU finishes the last frame before you start destroying things.
+vkDeviceWaitIdle(device);`
+  },
+  {
+    id: 'vertexbuffer',
+    title: 'Create Vertex Buffer',
+    type: 'VkBuffer + VkDeviceMemory',
+    tags: ['rendering', 'buffers'],
+    description: 'For real geometry instead of hardcoded triangles. A buffer holds raw bytes; memory is bound to it; you upload data through a mapped pointer or staging buffer.',
+    depends: ['device'],
+    remember: [
+      'Buffer creation and memory allocation are separate steps (then you bind them)',
+      'Find the right memory type with vkGetPhysicalDeviceMemoryProperties',
+      'HOST_VISIBLE | HOST_COHERENT for buffers you write to from CPU',
+      'For high-perf static geometry: upload via staging buffer to DEVICE_LOCAL memory',
+      'Strongly consider VMA (Vulkan Memory Allocator) instead of manual allocation'
+    ],
+    create: `VkBufferCreateInfo bufInfo = {0};
+bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+bufInfo.size = sizeof(Vertex) * vertexCount;
+bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+VkBuffer vertexBuffer;
+vkCreateBuffer(device, &bufInfo, NULL, &vertexBuffer);
+
+VkMemoryRequirements memReq;
+vkGetBufferMemoryRequirements(device, vertexBuffer, &memReq);
+
+VkPhysicalDeviceMemoryProperties memProps;
+vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+
+uint32_t memType = UINT32_MAX;
+VkMemoryPropertyFlags wanted =
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+    VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+for (uint32_t i = 0; i < memProps.memoryTypeCount; i++) {
+    if ((memReq.memoryTypeBits & (1 << i)) &&
+        (memProps.memoryTypes[i].propertyFlags & wanted) == wanted) {
+        memType = i;
+        break;
+    }
+}
+
+VkMemoryAllocateInfo allocInfo = {0};
+allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+allocInfo.allocationSize = memReq.size;
+allocInfo.memoryTypeIndex = memType;
+
+VkDeviceMemory vertexMemory;
+vkAllocateMemory(device, &allocInfo, NULL, &vertexMemory);
+vkBindBufferMemory(device, vertexBuffer, vertexMemory, 0);
+
+// Upload data
+void* mapped;
+vkMapMemory(device, vertexMemory, 0, bufInfo.size, 0, &mapped);
+memcpy(mapped, vertices, bufInfo.size);
+vkUnmapMemory(device, vertexMemory);`,
+    cleanup: `vkDestroyBuffer(device, vertexBuffer, NULL);
+vkFreeMemory(device, vertexMemory, NULL);
+// Order matters: buffer first, memory second.`
+  },
+  {
+    id: 'shutdown',
+    title: 'Full Shutdown / Cleanup Order',
+    type: 'order matters',
+    tags: ['cleanup', 'shutdown'],
+    description: 'Vulkan resources must be destroyed in reverse order of creation, and only after the GPU is idle. This is the manual-cleanup tax in C — get the order wrong and you crash or leak.',
+    depends: [],
+    remember: [
+      'ALWAYS call vkDeviceWaitIdle first — the GPU might still be using things',
+      'Destroy in reverse order of creation (last created → first destroyed)',
+      'Pools clean up their contents automatically (destroy pool, contents go with it)',
+      'Swap chain images are owned by the swap chain — never call vkDestroyImage on them',
+      'Physical devices and queues do NOT get destroyed — they belong to their parent'
+    ],
+    create: `// === Typical full shutdown sequence ===
+vkDeviceWaitIdle(device);
+
+// Per-frame sync
+vkDestroySemaphore(device, imageAvailable, NULL);
+vkDestroySemaphore(device, renderFinished, NULL);
+vkDestroyFence(device, inFlightFence, NULL);
+
+// Command pool (frees all command buffers it owns)
+vkDestroyCommandPool(device, commandPool, NULL);
+
+// Buffers + memory
+vkDestroyBuffer(device, vertexBuffer, NULL);
+vkFreeMemory(device, vertexMemory, NULL);
+
+// Pipeline
+vkDestroyPipeline(device, pipeline, NULL);
+vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+
+// Framebuffers
+for (uint32_t i = 0; i < imageCount; i++) {
+    vkDestroyFramebuffer(device, framebuffers[i], NULL);
+}
+free(framebuffers);
+
+// Render pass
+vkDestroyRenderPass(device, renderPass, NULL);
+
+// Image views
+for (uint32_t i = 0; i < imageCount; i++) {
+    vkDestroyImageView(device, swapViews[i], NULL);
+}
+free(swapViews);
+free(swapImages);
+
+// Swap chain
+vkDestroySwapchainKHR(device, swapchain, NULL);
+
+// Logical device
+vkDestroyDevice(device, NULL);
+
+// Surface + window
+vkDestroySurfaceKHR(instance, surface, NULL);
+glfwDestroyWindow(window);
+glfwTerminate();
+
+// Debug messenger (if used)
+PFN_vkDestroyDebugUtilsMessengerEXT destroyDbg =
+    (PFN_vkDestroyDebugUtilsMessengerEXT)
+    vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+destroyDbg(instance, debugMessenger, NULL);
+
+// Instance — always last
+vkDestroyInstance(instance, NULL);`,
+    cleanup: `// This entry IS the cleanup. There is no further cleanup of the cleanup.`
+  }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SYNTAX HIGHLIGHTING (minimal, regex-based, good enough for C/Vulkan)
+// ─────────────────────────────────────────────────────────────────────────────
+function highlight(code) {
+  // Escape HTML first
+  let out = code
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Build token spans in a single sweep to avoid double-highlighting.
+  // We process: comments, strings, keywords, types (Vk*, uint32_t etc), numbers.
+  const tokens = [];
+
+  // Comments (line)
+  out = out.replace(/(\/\/[^\n]*)/g, m => `\x00COM\x01${m}\x02`);
+  // Strings
+  out = out.replace(/("([^"\\]|\\.)*")/g, m => `\x00STR\x01${m}\x02`);
+  // Numbers
+  out = out.replace(/\b(0x[0-9a-fA-F]+|\d+\.?\d*f?)\b/g, m => `\x00NUM\x01${m}\x02`);
+  // Vulkan types / structs
+  out = out.replace(/\b(Vk[A-Z][A-Za-z0-9_]*|VK_[A-Z0-9_]+|PFN_vk[A-Za-z0-9_]+|GLFW[A-Za-z0-9_]*|GLFWwindow|VKAPI_ATTR|VKAPI_CALL)\b/g,
+    m => `\x00TY\x01${m}\x02`);
+  // C keywords + types
+  out = out.replace(/\b(void|int|char|float|double|uint8_t|uint16_t|uint32_t|uint64_t|int32_t|size_t|bool|true|false|NULL|if|else|for|while|do|return|struct|typedef|const|static|inline|sizeof|switch|case|break|continue|enum)\b/g,
+    m => `\x00KW\x01${m}\x02`);
+
+  // Convert markers to spans
+  out = out
+    .replace(/\x00COM\x01([\s\S]*?)\x02/g, '<span class="tk-com">$1</span>')
+    .replace(/\x00STR\x01([\s\S]*?)\x02/g, '<span class="tk-str">$1</span>')
+    .replace(/\x00NUM\x01([\s\S]*?)\x02/g, '<span class="tk-num">$1</span>')
+    .replace(/\x00TY\x01([\s\S]*?)\x02/g, '<span class="tk-ty">$1</span>')
+    .replace(/\x00KW\x01([\s\S]*?)\x02/g, '<span class="tk-kw">$1</span>');
+
+  return out;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDERING + SEARCH
+// ─────────────────────────────────────────────────────────────────────────────
+const entriesEl = document.getElementById('entries');
+const countEl = document.getElementById('count');
+const searchInput = document.getElementById('search');
+const searchWrap = document.getElementById('searchWrap');
+const shortcutHint = document.getElementById('shortcutHint');
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function highlightMatch(text, query) {
+  if (!query) return escapeHtml(text);
+  const escapedQ = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(${escapedQ})`, 'gi');
+  return escapeHtml(text).replace(re, '<mark>$1</mark>');
+}
+
+function renderEntry(entry, query) {
+  const dependsHtml = entry.depends.length
+    ? `<div class="section-label">requires</div>
+       <ul class="depends">
+         ${entry.depends.map(id => {
+            const dep = ENTRIES.find(e => e.id === id);
+            return `<li data-id="${id}">${dep ? dep.title : id}</li>`;
+         }).join('')}
+       </ul>`
+    : '';
+
+  return `
+    <div class="entry" data-id="${entry.id}">
+      <div class="entry-head">
+        <div class="entry-title">
+          ${highlightMatch(entry.title, query)}
+          <span class="type">// ${escapeHtml(entry.type)}</span>
+        </div>
+        <div class="entry-tags">
+          ${entry.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+          <span class="arrow">▶</span>
+        </div>
+      </div>
+      <div class="entry-body">
+        <div class="description"><p>${highlightMatch(entry.description, query)}</p></div>
+        ${dependsHtml}
+        <div class="section-label">create</div>
+        <pre class="code">${highlight(entry.create)}</pre>
+        <div class="section-label">things to remember</div>
+        <ul class="remember">
+          ${entry.remember.map(r => `<li>${highlightMatch(r, query)}</li>`).join('')}
+        </ul>
+        <div class="section-label danger">destroy</div>
+        <pre class="code danger">${highlight(entry.cleanup)}</pre>
+      </div>
+    </div>
+  `;
+}
+
+function matches(entry, query) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  const hay = [
+    entry.title,
+    entry.type,
+    entry.description,
+    entry.tags.join(' '),
+    entry.remember.join(' '),
+    entry.create,
+    entry.cleanup
+  ].join(' ').toLowerCase();
+  return hay.includes(q);
+}
+
+function render() {
+  const query = searchInput.value.trim();
+  const filtered = ENTRIES.filter(e => matches(e, query));
+
+  if (filtered.length === 0) {
+    entriesEl.innerHTML = `
+      <div class="empty">
+        <div class="big">no results</div>
+        <div>no entries matched "${escapeHtml(query)}"</div>
+      </div>`;
+    countEl.innerHTML = `<span class="num">0</span> entries`;
+    return;
+  }
+
+  countEl.innerHTML = `<span class="num">${filtered.length}</span> of ${ENTRIES.length} entries`;
+  entriesEl.innerHTML = filtered.map(e => renderEntry(e, query)).join('');
+
+  // Attach handlers
+  entriesEl.querySelectorAll('.entry-head').forEach(head => {
+    head.addEventListener('click', () => {
+      head.parentElement.classList.toggle('open');
+    });
+  });
+
+  entriesEl.querySelectorAll('.depends li').forEach(li => {
+    li.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = li.dataset.id;
+      searchInput.value = '';
+      render();
+      setTimeout(() => {
+        const target = entriesEl.querySelector(`.entry[data-id="${id}"]`);
+        if (target) {
+          target.classList.add('open');
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
+    });
+  });
+
+  // Auto-expand if there's a query and few results
+  if (query && filtered.length <= 3) {
+    entriesEl.querySelectorAll('.entry').forEach(e => e.classList.add('open'));
+  }
+}
+
+// Search input
+searchInput.addEventListener('input', render);
+
+// "/" focuses search
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+  if (e.key === 'Escape' && document.activeElement === searchInput) {
+    searchInput.blur();
+    searchInput.value = '';
+    render();
+  }
+});
+
+// Hide shortcut hint on focus
+searchInput.addEventListener('focus', () => shortcutHint.classList.add('hidden'));
+searchInput.addEventListener('blur', () => { if (!searchInput.value) shortcutHint.classList.remove('hidden'); });
+
+// Sticky border on scroll
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 4) searchWrap.classList.add('scrolled');
+  else searchWrap.classList.remove('scrolled');
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>
